@@ -44,7 +44,7 @@ pub fn default_client() -> Client {
     #[cfg(not(feature = "localnet"))]
     let host = "https://api.mainnet-beta.solana.com";
     #[cfg(feature = "localnet")]
-    let host = "https://rpc.helius.xyz/?api-key=174bd3e2-d17b-492f-902b-710feb5d18bc";
+    let host = "https://devnet.helius-rpc.com/?api-key=ff85b650-739a-416c-b02e-002cda578d43";
 
     let config_file = solana_cli_config::CONFIG_FILE.as_ref().unwrap().as_str();
     let config = solana_cli_config::Config::load(config_file).unwrap();

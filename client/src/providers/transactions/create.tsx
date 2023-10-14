@@ -1630,12 +1630,11 @@ provider
       trackingId,
       blockhash,
       programId: programId.toBase58(),
-      programDataAccount: programDataAccount.toBase58(),
       bitId,
       feeAccountSecretKey: feePayerKeypair.secretKey,
       computeUnitPrice,
       extraWriteAccount,
-      program, threadProgram, threadName
+      program, threadProgram
     })
     .then(
       (response: CreateTransactionResponseMessage) => {

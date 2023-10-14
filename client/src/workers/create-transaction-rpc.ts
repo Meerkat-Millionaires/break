@@ -11,7 +11,6 @@ export interface CreateTransactionMessage {
   programId: string;
   bitId: number;
   feeAccountSecretKey: Uint8Array;
-  programDataAccount: string;
   computeUnitPrice?: number;
   extraWriteAccount?: string;
   program?: Program,
@@ -61,6 +60,10 @@ export class CreateTransactionRPC {
   ): Promise<CreateTransactionResponseMessage> {
     return new Promise((resolve, reject) => {
       this.callbacks[message.trackingId] = [resolve, reject];
+      console.log(message)
+      delete message.threadProgram 
+      delete message.program 
+      
       this.worker.postMessage(message);
     });
   }

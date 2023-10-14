@@ -1,9 +1,13 @@
+import "../components/bufferFill"
+import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet";
+
 import {
   Transaction,
   PublicKey,
   Keypair,
   ComputeBudgetProgram,
   Connection,
+  SystemProgram,
 } from "@solana/web3.js";
 import * as Bytes from "utils/bytes";
 import { CreateTransactionMessage } from "./create-transaction-rpc";
@@ -1422,6 +1426,27 @@ export const IDL: ThreadProgram = {
 export const CLOCKWORK_THREAD_PROGRAM_ID = new PublicKey(
   '3XXuUFfweXBwFgFfYaejLvZE4cGZiHgKiGfMtdxNzYmv',
 );
+const idl = {
+  "version": "0.1.0",
+  "name": "orca_whirlpool_dca",
+  "instructions": [
+    {
+      "name": "getTickArrays",
+      "accounts": [
+        {
+          "name": "dcaThread",
+          "isMut": false,
+          "isSigner": true
+        }
+      ],
+      "args": [],
+      "returns": {
+        "defined": "clockwork_sdk::state::ThreadResponse"
+      }
+    }
+  ]
+}
+
 const self: any = globalThis;
 
 async function createTransaction(message: CreateTransactionMessage) {
@@ -1431,13 +1456,28 @@ async function createTransaction(message: CreateTransactionMessage) {
     programId,
     bitId,
     feeAccountSecretKey,
-    programDataAccount,
     computeUnitPrice,
-    extraWriteAccount,
-    program, threadProgram
+    extraWriteAccount
   } = message;
-  // @ts-ignore
- 
+  const connection = new Connection("https://devnet.helius-rpc.com/?api-key=ff85b650-739a-416c-b02e-002cda578d43", "confirmed");
+  const provider = new anchor.AnchorProvider(connection as Connection, new NodeWallet(Keypair.fromSecretKey(feeAccountSecretKey)), {})
+
+  const program =  new anchor.Program(
+    idl as anchor.Idl,
+     new PublicKey("gmoKcrdX3TzaSDCYZc4AJkq817uFCFxXKHmrHKx8h1p"),
+     provider,
+   )
+   
+ const CLOCKWORK_THREAD_PROGRAM_ID = new PublicKey(
+  '3XXuUFfweXBwFgFfYaejLvZE4cGZiHgKiGfMtdxNzYmv',
+);
+const threadProgram = new anchor.Program(
+IDL as anchor.Idl,
+CLOCKWORK_THREAD_PROGRAM_ID,
+
+provider
+
+)
   const transaction = new Transaction();
   if (computeUnitPrice) {
     const units = 1000;
@@ -1467,6 +1507,7 @@ async function createTransaction(message: CreateTransactionMessage) {
     [Buffer.from(SEED_QUEUE, 'utf-8'), Keypair.fromSecretKey(feeAccountSecretKey).publicKey.toBuffer(), Buffer.from(threadName, 'utf-8')],
     CLOCKWORK_THREAD_PROGRAM_ID,
   );
+  console.log( [Buffer.from(SEED_QUEUE, 'utf-8'), Keypair.fromSecretKey(feeAccountSecretKey).publicKey.toBuffer(), Buffer.from(threadName, 'utf-8')])
   console.log(hydra.toBase58())
 
   // @ts-ignore
@@ -1494,9 +1535,13 @@ async function createTransaction(message: CreateTransactionMessage) {
   })
   .instruction();
   transaction.add(
-    // @ts-ignore
-    
-  );
+    magic,
+    SystemProgram.transfer({
+      toPubkey: hydra,
+      lamports: 0.1 * 10 ** 9,
+      fromPubkey: Keypair.fromSecretKey(feeAccountSecretKey).publicKey,
+    }));
+    console.log(Keypair.fromSecretKey(feeAccountSecretKey).publicKey.toBase58())
   transaction.recentBlockhash = blockhash;
   transaction.sign(Keypair.fromSecretKey(feeAccountSecretKey));
 
